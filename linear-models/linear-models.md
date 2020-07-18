@@ -1,6 +1,6 @@
 # Linear Regression
 
-<img src="D:\Summary-of-ML\linear-models\linear-models.assets\singleneuron.svg" alt="../_images/singleneuron.svg" style="zoom:150%;" />
+<img src=".\linear-models.assets\singleneuron.svg" alt="Not Found" style="zoom:150%;" />
 
 
 
@@ -153,7 +153,7 @@ $$
 
 # Softmax Regression
 
-<img src="D:\Summary-of-ML\linear-models\linear-models.assets\softmaxreg.svg" alt="../_images/softmaxreg.svg" style="zoom:150%;" />
+<img src=".\linear-models.assets\softmaxreg.svg" alt="Not Found" style="zoom:150%;" />
 
 
 
@@ -172,7 +172,7 @@ $$
   \hat{y}_j = \frac{\exp (o_j)}{\sum_k \exp (o_k)}
   $$
 
-  > Remarque : $\operatorname*{argmax}\limits_j \hat{y}_j = \operatorname*{argmax}\limits_j o_j$ 
+  > Note : $\operatorname*{argmax}\limits_j \hat{y}_j = \operatorname*{argmax}\limits_j o_j$ 
 
 - $n$ examples:
   $$
@@ -217,9 +217,11 @@ l^{(i)}(\mathbf{y}^{(i)}, \hat{\mathbf{y}}^{(i)})
 \end{split}
 $$
 
-> Remarque 1: This simplification is very useful because of avoiding overflow and underflow (cause by large exponential).
+> Note 1: This simplification is very useful because of avoiding overflow and underflow (cause by large exponential).
 >
-> Remarque 2: In PyTorch (same in other DL lib), we use ```nn.CrossEntropyLoss()``` which has more optimization in coding, such as [LogSumExp trick](https://en.wikipedia.org/wiki/LogSumExp), instead of ```softmax``` + ```cross-entropy```.
+> Note 2: In PyTorch (same in other DL lib), we use ```nn.CrossEntropyLoss()``` which has more optimization in coding, such as [LogSumExp trick](https://en.wikipedia.org/wiki/LogSumExp), instead of ```softmax``` + ```cross-entropy```. [More information](https://d2l.ai/chapter_linear-networks/softmax-regression-concise.html#softmax-implementation-revisited) 
+
+
 
 ### Motivation of Cross-Entropy Loss
 
@@ -234,7 +236,7 @@ $$
 \sum_{i=1}^n l (\mathbf{y}^{(i)}, \hat{\mathbf{y}}^{(i)})
 $$
 
-> Remarque : Maximizing the likelihood of the observed data here also means minimizing our surprisal required to communicate the labels.
+> Note : Maximizing the likelihood of the observed data here also means minimizing our surprisal required to communicate the labels.
 
 
 
