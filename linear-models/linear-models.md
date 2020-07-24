@@ -265,3 +265,14 @@ $$
 
 
 
+
+
+# Usages
+
+1. Provide a sanity check:
+   - See whether there is meaningful information in the data. 
+   - If we cannot do better than random guessing here, then there might be a good chance that we have a data processing bug. 
+   - If things work, the linear model will serve as a baseline giving us some intuition about how close the simple model gets to the best reported models, giving us a sense of how much gain we should expect from fancier models.
+
+
+
