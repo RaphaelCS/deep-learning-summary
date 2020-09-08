@@ -9,3 +9,4 @@ This is a summary of deep learning algorithms, especially inspired by [Dive into
 ## TODO
 
 1. Write explicitly the gradient in Softmax Regression
+2. Why regularizations can solve the overfitting problem 
