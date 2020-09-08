@@ -1,0 +1,192 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{pdfpages}
+\usepackage[titletoc, title]{appendix}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+
+
+\def\vx{\boldsymbol{x}}
+\def\vX{\boldsymbol{X}}
+\def\vy{\boldsymbol{y}}
+\def\vY{\boldsymbol{Y}}
+\def\vw{\boldsymbol{w}}
+\def\vtheta{\boldsymbol{\theta}}
+
+\def\rmx{\mathrm{x}}
+
+\def\vrmx{\boldsymbol{\mathrm{x}}}
+\def\vrmy{\boldsymbol{\mathrm{y}}}
+
+\def\bbE{\mathbb{E}}
+\def\bbX{\mathbb{X}}
+
+\DeclareMathOperator*{\relu}{ReLU}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\newcommand{\egvx}[1]{\boldsymbol{x}^{(#1)}}
+\newcommand{\egvy}[1]{\boldsymbol{y}^{(#1)}}
+\newcommand{\egx}[1]{x^{(#1)}}
+\newcommand{\egy}[1]{y^{(#1)}}
+\newcommand{\eghy}[1]{\hat{y}^{(#1)}}
+
+\newcommand{\expect}[3]{\mathbb{E}_{#1 \sim #2} \left[ #3 \right]}
+\newcommand{\dkl}[2]{D_{\mathrm{KL}}(#1 \Vert #2)}
+\newcommand{\condiP}[3]{P(#1 \mid #2;#3)}
+\newcommand{\condip}[3]{p(#1 \mid #2;#3)}
+\newcommand{\ND}[3]{\mathcal{N}(#1;#2,#3)}
+
+
+\title{Maximum Likelihood Estimation (MLE)}
+\author{CHEN Si}
+\date{}
+
+
+\begin{document} 
+
+
+\maketitle
+\tableofcontents
+
+
+\section{Motivation}
+\begin{itemize}
+    \item Need some principle from which we can derive specific functions that are good estimators for different models
+\end{itemize}
+
+
+\section{Maximum Likelihood Estimator}
+\paragraph{Problem Settings}
+\begin{itemize}
+    \item Consider a set of $m$ examples $\bbX = \{ \egvx{1}, \dots, \egvx{m} \}$ drawn \textbf{independently} from the \textbf{true but unknown} data-generating distribution $p_{\text{data}}(\vx)$
+    \item Let $p_{\text{model}}(\vx ; \vtheta)$ be a parametric family of probability distributions over the same space indexed by $\vtheta$
+\end{itemize}
+\paragraph{Definition}
+\[
+    \begin{split}
+        \vtheta_{\text{ML}} &= \argmax_{\vtheta} p_{\text{model}}(\bbX;\vtheta) \\ 
+        &= \argmax_{\vtheta} \prod_{i=1}^m p_{\text{model}}(\egvx{i};\vtheta)
+    \end{split}
+\]
+\begin{itemize}
+    \item Disadvantage: Prone to numerical underflow
+\end{itemize}
+\paragraph{Logarithm of the Likelihood}
+\[
+    \vtheta_{\text{ML}} = \argmax_{\vtheta} \sum_{i=1}^m \log p_{\text{model}}(\egvx{i};\vtheta)
+\]
+\paragraph{Rescale by $m$}
+\[
+    \begin{split}
+        \vtheta_{\text{ML}} &= \argmax_{\vtheta} \frac{1}{m} \sum_{i=1}^m \log p_{\text{model}}(\egvx{i};\vtheta) \\ 
+        &= \argmax_{\vtheta} \expect{\vrmx}{\hat{p}_{\text{data}}}{\log p_{\text{model}}(\vx;\vtheta)}
+    \end{split}
+\]
+\begin{itemize}
+    \item This is an expectation with respect to the empirical distribution $\hat{p}_{\text{data}}$ defined by the training data
+\end{itemize}
+
+\subsection{Interpretation}
+\begin{itemize}
+    \item Minimize the cross-entropy
+        \[
+            H(\hat{p}_{\text{data}}, p_{\text{model}}) = 
+            - \expect{\vrmx}{\hat{p}_{\text{data}}}{\log p_{\text{model}}(\vx)}
+        \]
+        between the empirical distribution difined by the training set and the probability distribution defined by model
+    \item Equivalently, minimize the dissimilarity between $\hat{p}_{\text{data}}$ and $\hat{p}_{\text{model}}$
+        \[
+            \dkl{\hat{p}_{\text{data}}}{p_{\text{model}}} = \expect{\vrmx}{\hat{p}_{\text{data}}}{\log \hat{p}_{\text{data}}(\vx) - \log p_{\text{model}} (\vx;\vtheta)}
+        \]
+        , whose minimum is $0$        
+    \item Make the model distribution match the empirical distribution
+\end{itemize}
+
+\subsection{Properties}
+It can be shown to be the best estimator \textbf{asymptotically}, as the number of examples $m \to \infty$, in terms of its rate of convergence.
+\begin{enumerate}
+    \item Consistency, if under appropriate conditions:
+        \begin{itemize}
+            \item The true distribution $p_\text{data}$ must lie within the model family $p_\text{model}(\cdot ; \vtheta)$
+                \\ Otherwise, no estimator can recover $p_\text{data}$
+            \item The true distribution $p_\text{data}$ must correspond to exactly one value of $\vtheta$
+                \\ Otherwise, maximum liklihood can recover the correct $p_\text{data}$ but will not be able to determine which value of $\vtheta$ was used by the data-generating process
+        \end{itemize}
+    \item Statistical Efficiency
+        \begin{itemize}
+            \item The Cramér-Rao lower bound (Rao, 1945; Cramér, 1946) shows that no consistent estimator has a lower MSE than the maximum likelihood estimator
+                (Appendix \ref{app:se_mle})
+        \end{itemize}
+\end{enumerate}
+For its consistency and efficiency, maximum likelihood is often considered the preferred estimator to use of machine learning.
+\\ When the number of examples is small enough to yield overfitting behavior, regularization strategies such as weight decay may be used to obtain a biased version of maximum likelihood that has less variance when training data is limited
+
+
+\section{Conditional Log-Likelihood}
+
+\subsection{Goal}
+\begin{itemize}
+    \item Estimate a conditional probability $\condiP{\vrmy}{\vrmx}{\vtheta}$
+    \item In order to predict $\vrmy$ given $\vrmx$ (This forms the basis for most supervised learning)
+\end{itemize}
+
+\subsection{Conditional Maximum Likelihood Estimator}
+\paragraph{Notations}
+\begin{itemize}
+    \item $\vX$: All our inputs
+    \item $\vY$: All our observed targets
+\end{itemize}
+\paragraph{Definition}
+\[
+    \vtheta_{\text{ML}} = \argmax_{\vtheta} \condiP{\vY}{\vX}{\vtheta}
+\]
+If the examples are assumed to be \textbf{i.i.d.}, then this can be decomposed into
+\[
+    \vtheta_{\text{ML}} = \argmax_{\vtheta} \sum_{i=1}^m \log \condiP{\egvy{i}}{\egvx{i}}{\vtheta}
+\]
+
+\subsection{Example: Linear Regression as Maximum Likelihood}
+\paragraph{Problem Settings}
+\begin{itemize}
+    \item The model produces a conditional distribution $p(y \mid \vx)$
+    \item We define $p(y \mid \vx) = \ND{y}{\hat{y}(\vx; \vw)}{\sigma^2}$
+    \item The function $\hat{y}(\vx; \vw)$ gives the prediction of the mean of the Gaussian
+    \item We assume that the variance is fixed to some constant $\sigma^2$ chosen by the user
+\end{itemize}
+\paragraph{Mean Squared Error}
+Since the examples are assumed to be \textbf{i.i.d.}, the conditional log-likelihood if given by
+\[
+    \sum_{i=1}^m \log \condip{\egy{i}}{\egvx{i}}{\vw} = 
+    - m \log \sigma - \frac{m}{2} \log (2\pi) - \sum_{i=1}^m \frac{\Vert \eghy{i} - \egy{i} \Vert^2}{2\sigma^2}
+\]
+Thus, maximizing the log-likelihood with respect to $\vw$ yields the same estimate of the parameters $\vw$ as minimizing the mean squared error 
+\[
+    \mathrm{MSE}_\text{train} = \frac{1}{m} \sum_{i=1}^m \Vert \eghy{i} - \egy{i} \Vert^2
+\]
+\paragraph{Remark}
+MSE is the cross-entropy between the empirical distribution defined by the training set and a Gaussian model defined by model
+
+
+\newpage
+\begin{appendices}
+% \renewcommand{\appendixname}{Appendix~\Alph{section}}
+
+\section{Statistical Efficiency of MLE}
+\label{app:se_mle}
+There are other inductive principles besides the maximum likelihood estimator,many of which share the property of being consistent estimators. Consistentestimators can diﬀer, however, in theirstatistical eﬃciency, meaning that oneconsistent estimator may obtain lower generalization error for a ﬁxed number ofsamplesm, or equivalently, may require fewer examples to obtain a ﬁxed level ofgeneralization error.
+\\
+Statistical eﬃciency is typically studied in theparametric case(as in linearregression), where our goal is to estimate the value of a parameter (assuming itis possible to identify the true parameter), not the value of a function. A way tomeasure how close we are to the true parameter is by the expected mean squarederror, computing the squared diﬀerence between the estimated and true parameter values, where the expectation is overmtraining samples from the data-generatingdistribution. That parametric mean squared error decreases asmincreases, andformlarge, the Cramér-Rao lower bound (Rao, 1945; Cramér, 1946) shows thatno consistent estimator has a lower MSE than the maximum likelihood estimator.
+
+\end{appendices}
+
+
+\end{document}

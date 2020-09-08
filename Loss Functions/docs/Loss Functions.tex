@@ -1,0 +1,294 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{pdfpages}
+\usepackage[titletoc, title]{appendix}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+
+
+\def\vb{\boldsymbol{b}}
+\def\vh{\boldsymbol{h}}
+\def\vw{\boldsymbol{w}}
+\def\vx{\boldsymbol{x}}
+\def\vy{\boldsymbol{y}}
+\def\vz{\boldsymbol{z}}
+\def\v1{\boldsymbol{1}}
+
+\def\vI{\boldsymbol{I}}
+\def\vW{\boldsymbol{W}}
+\def\vX{\boldsymbol{X}}
+\def\vY{\boldsymbol{Y}}
+
+\def\vtheta{\boldsymbol{\theta}}
+
+\def\rmx{\mathrm{x}}
+
+\def\vrmx{\boldsymbol{\mathrm{x}}}
+\def\vrmy{\boldsymbol{\mathrm{y}}}
+
+\def\bbE{\mathbb{E}}
+\def\bbX{\mathbb{X}}
+
+\DeclareMathOperator*{\relu}{ReLU}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\softmax}{softmax}
+
+\newcommand{\egvx}[1]{\boldsymbol{x}^{(#1)}}
+\newcommand{\egvy}[1]{\boldsymbol{y}^{(#1)}}
+\newcommand{\egx}[1]{x^{(#1)}}
+\newcommand{\egy}[1]{y^{(#1)}}
+\newcommand{\eghy}[1]{\hat{y}^{(#1)}}
+
+\newcommand{\expect}[3]{\mathbb{E}_{#1 \sim #2} \left[ #3 \right]}
+\newcommand{\dkl}[2]{D_{\mathrm{KL}}(#1 \Vert #2)}
+\newcommand{\condiP}[3]{P(#1 \mid #2;#3)}
+\newcommand{\condip}[3]{p(#1 \mid #2;#3)}
+\newcommand{\ND}[3]{\mathcal{N}(#1;#2,#3)}
+
+\newcommand{\dx}[1]{\frac{\mathrm{d}}{\mathrm{d}x} #1}
+
+
+\title{Loss Functions}
+\author{CHEN Si}
+\date{}
+
+
+\begin{document} 
+
+
+\maketitle
+\tableofcontents
+
+
+\section{Introduction}
+\begin{enumerate}
+    \item In most cases, our parametric model defines a distribution $\condip{\vy}{\vx}{\vtheta}$ and we simply use the principle of maximum likelihood.
+        \begin{itemize}
+            \item This means we use the \textbf{cross-entropy} between the training data and the model's predictions as the cost function.
+        \end{itemize}
+    \item Sometimes, we merely predict some statistic of $\vy$ conditioned on $\vx$
+        \begin{itemize}
+            \item Specialized loss functions enable us to train a predictor of these estimates.
+        \end{itemize}
+    \item The total loss function used to train a neural network often combine a primary loss function with a regularization term.
+\end{enumerate}
+
+
+\subsection{Learning Conditional Distribution with Maximum Likelihood}
+Most modern neural networks are trained using maximum likelihood.
+\[
+    J(\vtheta) = - \mathbb{E}_{\vrmx,\vrmy\sim\hat{\rho}_\text{data}} \log p_\text{model}(\vy \mid \vx)
+\]
+\begin{itemize}
+    \item This means that the cost function is simply the negative log-likelihood, equivalently described as the cross-entropy between the training data and the model distribution.
+\end{itemize}
+\subsubsection{Advantages}
+\begin{enumerate}
+    \item Deriving the loss function from maximum likelihood removes the burden of designing cost functions for each model.
+    \item Helps to avoid the problem of saturation
+        \begin{itemize}
+            \item Several output units involve an exp function that can saturate when its argument is very negative, because of the log function in the negative log-likelihood loss function.
+            \item Prevent the gradient vanishing caused by saturation.
+        \end{itemize}
+\end{enumerate}
+\subsubsection{Example}
+If $p_\text{model}(\vy \mid \vx) = \ND{\vy}{f(\vx;\vtheta)}{\vI}$, then we recover the mean squared error cost
+\[
+    J(\vtheta) = \frac{1}{2} \mathbb{E}_{\vrmx,\vrmy\sim\hat{\rho}_\text{data}} \Vert \vy - f(\vx;\vtheta) \Vert^2 + \mathrm{const}
+\]
+
+
+\subsection{Learning Conditional Statistics}
+\begin{itemize}
+    \item Instead of learning a full probability distribution $\condip{\vy}{\vx}{\vtheta}$, we often want to learn just one conditional statistic of $\vy$ given $\vx$. (e.g. The mean of $\vy$ given $\vx$.)
+    \item The loss function can be viewed as a mapping from functions (rather than a set of parameters) to real numbers.
+\end{itemize}
+\subsubsection{Two results derived from calculus of variations} Different cost functions give different statistics.
+\begin{enumerate}
+    \item Solving the optimization problem 
+        \[
+            f^* = \argmin_f \mathbb{E}_{\vrmx,\vrmy\sim p_\text{data}} \Vert \vy - f(\vx) \Vert^2
+        \]
+        yields
+        \[
+            f^*(\vx) = \mathbb{E}_{\vrmy\sim p_\text{data}(\vy\mid\vx)} [\vy]
+        \]
+        so long as this function lies within the class we optimize over.
+        \begin{itemize}
+            \item If we could train on infinitely many samples from the true data generating distribution, minimizing the MSE cost function would give a function that predicts the \textbf{mean} of $\vy$ for each value of $\vx$.
+        \end{itemize}
+    \item Solving the optimization problem
+        \[
+            f^* = \argmin_f \mathbb{E}_{\vrmx,\vrmy\sim p_\text{data}} \Vert \vy - f(\vx) \Vert_1
+        \]
+        yields a function that predicts the \textbf{median} value of $\vy$ for each $\vx$, as long as such a function may be described by the family of functions we optimize over.
+        \begin{itemize}
+            \item This cost function is commonly called \textbf{mean absolute error}.
+        \end{itemize}
+\end{enumerate}
+\paragraph{Disadvantages}
+\begin{itemize}
+    \item MSE and MAE often lead to poor results when used with gradient-based optimization. Some output units that saturate produce very small gradients when combined with these cost functions.
+    \begin{itemize}
+        \item This is one reason that the cross-entropy cost function (negative log-likelihood) is more popular than MSE or MAE, even when it is not necessary to estimate an entire distribution $p(\vy \mid \vx)$.
+    \end{itemize}
+\end{itemize}
+
+
+\section{Output Units}
+The choice of how to represent the ouput then determines the form of the cross-entropy function.
+\newline
+Throughout this section, we suppose that the feedforward network provides a set of hidden features defined by $\vh = f(\vx;\vtheta)$.
+\subsection{Linear Units}
+\paragraph{Definition}
+\[
+    \hat{\vy} = \vW^\top\vh+\vb
+\]
+\begin{itemize}
+    \item Linear output layers are often used to produce the mean of a conditional Gaussian distribution
+        \[
+            p(\vy \mid \vx) = \ND{\vy}{\hat{\vy}}{\vI}
+        \]
+\end{itemize}
+\paragraph{Advantages}
+\begin{enumerate}
+    \item Because linear units do not saturate, they pose little difficulty for gradient-based optimization algorithms.
+\end{enumerate}
+\subsection{Sigmoid Units for Bernoulli Output Distributions}
+\paragraph{Definition}
+\[
+    \hat{y} = \sigma \left( \vw^\top \vh + b \right)
+\]
+\begin{itemize}
+    \item $z = \vw^\top \vh + b$ defining such a distribution over binary variables is called a \textbf{logit}.
+    \item Predicts only $P(y=1 \mid \vx)$ 
+        \newline
+        (Actually predicts unnormalized log probability $\log \tilde{P}(y=1 \mid \vx) = z$)
+\end{itemize}
+\paragraph{Motivation}
+Construct an unnormalized probability distribution $\tilde{P}(y)$. $\forall y=0,1$, if we assume 
+\[
+    \log \tilde{P}(y) = yz
+\]
+After exponentiating we obtain
+\[
+    \tilde{P}(y) = \exp (yz)
+\]
+After normalizing we obtain 
+\[
+    \begin{split}
+        P(y) &= \frac{\exp(yz)}{\sum_{y'=0}^1 \exp(y'z)}
+        \\&= \sigma ((2y-1)z)
+    \end{split}
+\]
+\paragraph{Advantages}
+\begin{enumerate}
+    \item \textbf{Ensures there is always a strong gradient whenever the model has the wrong answer.}
+    \item Prevent the saturation of Sigmoid if we use MLE.
+        \[
+            \begin{split}
+                J(\vtheta) &= - \log P(y \mid \vx)
+                \\&= - \log \sigma((2y-1)z)
+                \\&= \zeta((1-2y)z)
+            \end{split}
+        \]
+        Thus, gradient-based learning can act to quickly correct a mistaken $z$, because the softplus function asymptotes toward simply returning its argument $(1-2y)z = \vert z \vert$ if $z$ have the wrong sign.
+    \item MLE is almost always the preferred approach to training sigmoid output units.
+    \begin{itemize}
+        \item If we use MSE, the gradient can shrink too small whether the model has the correct answer or thr incorrect answer.
+    \end{itemize}
+\end{enumerate}
+\paragraph{In Software Implementation}
+\begin{enumerate}
+    \item Write the negative log-likelihood as a function of $z$, rather than as a function of $\hat{y} = \sigma(z)$
+    \begin{itemize}
+        \item To avoid numerical underflow of Sigmoid, which yields numerical overflow of logarithm.
+    \end{itemize}
+\end{enumerate}
+\paragraph{Applications}
+\begin{enumerate}
+    \item Binary classifier.
+\end{enumerate}
+
+
+\subsection{Softmax Units for Multinoulli Output Distributions}
+\paragraph{Definition}
+First, predicts unnormalized log probabilities
+\[
+    \vz = \vW^\top\vh + \vb
+\]
+where
+\[
+    z_i = \log \tilde{P}(y=i \mid \vx)
+\]
+The softmax function can then exponentiate and normalize $\vz$ to obtain the desired $\hat{\vy}$
+\[
+    \softmax(\vz)_i = \frac{\exp(z_i)}{\sum_j \exp(z_j)}
+\]
+\begin{itemize}
+    \item $\forall i \in 1, 2, \dots, n,\ \softmax(\vz)_i \in (0, 1)$
+    \item $\displaystyle \sum_i \softmax(\vz)_i = 1$
+\end{itemize}
+\paragraph{Properties}
+\begin{enumerate}
+    \item Invariant to adding the same scalar to all its inputs
+        \[
+            \softmax(\vz) = \softmax(\vz + c)
+        \]
+    \item A "softened" (continuous and differentiable) version of the $\argmax$ (with its result represented as a one-hot vector).
+    \item The corresponding soft version of the maximum function is $\softmax(\vz)^\top \vz$.
+\end{enumerate}
+\paragraph{Advantages}
+\begin{enumerate}
+    \item As with the logistic sigmoid, the use of the exp function works well when training the softmax to output a target value $y$ using maximum log-likelihood.
+    \item The log in the log-likelihood undoes the exp of the softmax
+        \[
+            \log \softmax(\vz)_i = z_i - \log \sum_j \exp(z_j)
+        \]
+        \begin{itemize}
+            \item The fist term shows that the input $z_i$ always has a direct contribution to the cost funtion because this term cannot saturate.
+            \item $\log \sum_j \exp(z_j) \approx \max_j z_j$
+                \begin{itemize}
+                    \item Always penalizes the most active incorrect prediction.
+                    \item If the correct answer already has the largest input to the softmax, then the two terms will roughly cancel.
+                \end{itemize}
+            \item When maximizing the log-likelihood, the first term encourages $z_i$ to be pushed up, while the second term encourages all of $\vz$ to be pushed down.
+        \end{itemize}
+    \item Unregularized maximum likelihood will drive the model to learn parameters that drive the softmax to predict the fraction of counts of each outcome observed in the training set
+        \[
+            \softmax(\vz(\vx;\vtheta))_i \approx \frac{\sum_{j=1}^m \v1_{\egy{j}=i, \egvx{j}=\vx}}{\sum_{j=1}^m \v1_{\egvx{j}=\vx}}
+        \]
+        \begin{itemize}
+            \item Because MLE is a consistent extimator, this if guaranteed to happen as long as the model family is capable of representing the training distribution.
+        \end{itemize}
+    \item Squared error (or other loss function with out $\log$) is a poor loss function for softmax units and can fail to train the model to change its output, even when the model makes highly confident incorrect predictions.
+        \begin{itemize}
+            \item The softmax activation can saturate when the differences between input values become extreme.
+                \begin{itemize}
+                    \item An output $\softmax(\vz)_i$ saturates to $1$ when the corresponding input is maximal ($z_i = \max_i z_i$) and $z_i$ is much greater than all the other inputs.
+                    \item An output $\softmax(\vz)_i$ saturates to $0$ when the corresponding input $z_i$ is not maximal and the maximum is much greater.
+                \end{itemize}
+            \item The gradient will vanish when the argument to the exp becomes very negative.
+        \end{itemize}
+\end{enumerate}
+\paragraph{Applications}
+\begin{enumerate}
+    \item Used as the output of a multiclass-classifier, to represent the probability distribution over $n$ different classes.
+    \item More rarely, used inside the model itself, if we wish the model to choose between one of $n$ different options for some internal variable.
+\end{enumerate}
+
+
+\subsection{Other Output Types}
+(To be accomplished) (See \textit{Deep Learning Book 6.2.2.4})
+
+
+\end{document}
