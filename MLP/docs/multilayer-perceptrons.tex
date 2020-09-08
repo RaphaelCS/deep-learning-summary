@@ -1,0 +1,115 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage{amsmath}
+
+
+\def\vx{\boldsymbol{x}}
+\def\vw{\boldsymbol{w}}
+\def\vtheta{\boldsymbol{\theta}}
+
+
+\title{Multilayer Perceptrons}
+\author{CHEN Si}
+\date{}
+
+\begin{document} 
+
+\maketitle
+
+
+\section{Introduction}
+
+    \begin{itemize}
+        \item For short, \textbf{MLPs}
+        \item Also called 
+            \textbf{Deep Feedforward Networks} or
+            \textbf{Feedforward Neural Networks}
+    \end{itemize}
+
+
+\section{Motivation}
+
+    \begin{enumerate}
+        \item Weaknesses of linear models
+            \begin{itemize}
+                \item Linearity is a strong assumption
+                    \begin{itemize}
+                        \item Because outputs are always monotonic with inputs
+                    \end{itemize}
+                \item We want to learn a representation of our data (the first $L-1$ layers), take into account the relevant interactions among our features, on top of which a linear model (the final layer) would be suitable
+            \end{itemize}
+        \item How to obtain the features $\phi(\vx)$ of $\vx$
+            \begin{itemize}
+                \item Kernel trick, such as infinite-dimensional RBF Kernel
+                    \begin{itemize}
+                        \item Enough capacity to fit the training set, but poor generalization
+                    \end{itemize}
+                \item Manually engineer $\phi$
+                    \begin{itemize}
+                        \item Require lots of effort for each separate task
+                    \end{itemize}
+            \end{itemize}
+        \item From neuroscience
+            \begin{itemize}
+                \item The idea of using many layers of vector-valued representations is drawn from neuroscience
+            \end{itemize}
+        \item From mathematical and engineering disciplines
+            \begin{itemize}
+                \item Function approximation machines
+            \end{itemize}
+    \end{enumerate}
+
+
+\section{Goal}
+
+    \begin{enumerate}
+        \item Deal with the weaknesses of linear models
+            \begin{itemize}
+                \item With deep neural networks, we used observational data to jointly learn both a representation via hidden layers and a linear predictor that acts upon that representation
+                \item To capture complex interactions among our inputs via their hidden neurons
+                \item To use a model that learns a different feature space in which a linear model is able to represent the solution
+            \end{itemize}
+        \item Learn the features $\phi(\vx;\vtheta)$
+            \begin{itemize}
+                \item We have a model $y = f(\vx;\vtheta, \vw) = \phi(\vx;\vtheta)^\top \vw$
+            \end{itemize}
+        \item \textbf{Universal Approximators}
+            \begin{itemize}
+                \item Designed to achieve statistical generalization (rather than to model our brain)
+                \item Even with a single-hidden-layer network, given enough nodes (possibly absurdly many), and the right set of weights, we can model any function
+                \item Approximate many functions much more compactly by using \textbf{deeper} (vs. \textbf{wider}) networks
+                \item Learning that function is actually the hard part
+            \end{itemize}
+    \end{enumerate}
+
+
+\section{Model}
+
+    \subsection{Terminology}
+    \begin{itemize}
+        \item Layer: A function in the chain structure
+        \item Hidden layers: The layers for which the training data does not show the desired output
+    \end{itemize}
+
+    \subsection{Assumptions}
+    \begin{itemize}
+        \item For each example, $\vx$ is accompanied by a label $y \approx f^*(\vx)$
+    \end{itemize}
+
+
+\section{Advantages}
+
+    \begin{itemize}
+        \item Being highly generic: broad family $\phi(\vx;\vtheta)$
+        \item Generalization: only need to find the right general function family rather than finding precisely the right function
+    \end{itemize}
+
+
+\section{Disadvantages}
+
+    \begin{itemize}
+        \item Give up on the convexity of the training problem
+    \end{itemize}
+
+
+\end{document}
