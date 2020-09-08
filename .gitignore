@@ -130,3 +130,10 @@ dmypy.json
 
 # VScode
 .vscode
+
+# Latex
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
