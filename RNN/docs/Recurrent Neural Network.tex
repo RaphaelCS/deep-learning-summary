@@ -58,6 +58,7 @@
 \newcommand{\egva}[1]{\boldsymbol{a}^{(#1)}}
 \newcommand{\egvb}[1]{\boldsymbol{b}^{(#1)}}
 \newcommand{\egvc}[1]{\boldsymbol{c}^{(#1)}}
+\newcommand{\egvg}[1]{\boldsymbol{g}^{(#1)}}
 \newcommand{\egvh}[1]{\boldsymbol{h}^{(#1)}}
 \newcommand{\egvo}[1]{\boldsymbol{o}^{(#1)}}
 \newcommand{\egvs}[1]{\boldsymbol{s}^{(#1)}}
@@ -171,7 +172,9 @@ where $\egvs{t}$ is called the \textbf{state} of the system.
 
 \section{Taxonomy}
 
-\subsection{}
+\subsection{Sequence to Sequence of the same length}
+
+\subsubsection{}
 Recurrent networks that produce an output at each time step and have recurrent connections between hidden units.
 \begin{equation}
     \begin{split}
@@ -215,7 +218,7 @@ with a initial state $\egvh{0}$.
     \item Only able to represent distributins in which the $\vy$ values are conditionally independent from each other given the $\vx$ values.
 \end{itemize}
 
-\subsection{}
+\subsubsection{}
 Recurrent networks that produce an output at each time step and have recurrent connections only from the output at one time step to the hidden units at the next time step.
 \begin{center}
     \includegraphics[width=0.9\textwidth]{../imgs/RNN_2.pdf}
@@ -247,7 +250,23 @@ Recurrent networks that produce an output at each time step and have recurrent c
         \end{enumerate}
 \end{enumerate}
 
-\subsection{}
+
+\subsubsection{}
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{../imgs/RNN_5.pdf}
+\end{center}
+\paragraph{Characteristics}
+\begin{itemize}
+    \item Because of connections from the output at time $t$ to the hidden unit at time $t+1$, the model can represent arbitrary probability distributions over the $\vy$ sequence (no conditional independence assumption).
+\end{itemize}
+\paragraph{Restrictions}
+\begin{enumerate}
+    \item The length of both sequences must be the same.
+\end{enumerate}
+
+
+\subsection{Sequence to Fixed-Size Vector}
+\subsubsection{}
 Recurrent networks with recurrent connections between hidden units, that read an entire sequence and then produce a single output.
 \begin{center}
     \includegraphics[width=0.9\textwidth]{../imgs/RNN_3.pdf}
@@ -262,7 +281,8 @@ Recurrent networks with recurrent connections between hidden units, that read an
 \end{enumerate}
 
 
-\subsection{}
+\subsection{Fixed-Size Vector to Sequence}
+\subsubsection{}
 \begin{center}
     \includegraphics[width=0.9\textwidth]{../imgs/RNN_4.pdf}
 \end{center}
@@ -274,20 +294,6 @@ Recurrent networks with recurrent connections between hidden units, that read an
 \paragraph{Applications}
 \begin{enumerate}
     \item Image captioning, where a single image is used as input to a model that then produces a sequence of words describing the image.
-\end{enumerate}
-
-
-\subsection{}
-\begin{center}
-    \includegraphics[width=0.9\textwidth]{../imgs/RNN_5.pdf}
-\end{center}
-\paragraph{Characteristics}
-\begin{itemize}
-    \item Because of connections from the output at time $t$ to the hidden unit at time $t+1$, the model can represent arbitrary probability distributions over the $\vy$ sequence (no conditional independence assumption).
-\end{itemize}
-\paragraph{Restrictions}
-\begin{enumerate}
-    \item The length of both sequences must be the same.
 \end{enumerate}
 
 
@@ -330,6 +336,132 @@ Here we talk about the BPTT of equation \ref{rnn_for} as forward propagation and
 
 \section{Bidirectional RNNs}
 
+\begin{center}
+    \includegraphics[width=0.6\textwidth]{../imgs/Bi-RNN.pdf}
+\end{center}
+\begin{itemize}
+    \item $\egvh{t}$: state of the sub-RNN that moves forward through time
+    \item $\egvg{t}$: state of the sub-RNN that moves backward through time
+    \item $\egvo{t}$: compute a representation that depends on both the past and the future but is most sensitive to the input values around time $t$
+\end{itemize}
+
+\paragraph{Motivation}
+\begin{itemize}
+    \item The prediction $\egvy{t}$ may depend on the whole input sequence.
+\end{itemize}
+
+\paragraph{Applications}
+\begin{enumerate}
+    \item{In speech recognition, handwriting recognition and many other sequence-to-sequence learning tasks: \\
+        The correct interpretation of the current sound as a phoneme may depend on the next few phonemes because of co-articulation and may even depend on the next few words because of the linguistic dependencies between nearby words.
+    }
+\end{enumerate}
+
+\paragraph{Variants}
+\begin{enumerate}
+    \item{
+        For two-dimensional input (such as images):
+        \begin{itemize}
+            \item Having four RNNs, each on going in one of the four directions
+            \item At each point $(i,j)$ of a $2-D$ grid, an output $O_{i,j}$ could then compute a representation that would capture mostly local information but could also depend on long-range inputs.
+            \item{
+                Restrictions:
+                \begin{enumerate}
+                    \item Typically more expensive compared to a convolutional network.
+                \end{enumerate}
+            }
+        \end{itemize}
+    }
+\end{enumerate}
+
+
+\section{Encoder-Decoder or Sequence-to-Sequence Architectures}
+
+The input to RNN is often called the "context". We want to produce a representation of this context, $C$. The context $C$ might be a vector or sequence of vectors that summarize the input sequence $\vX = (\egvx{1},\dots,\egvx{n_x})$.
+The idea is as follow
+\begin{itemize}
+    \item An \textbf{encoder} or \textbf{reader} or \textbf{input} RNN processes the input sequence. The encoder emits the context $C$, usually as a simple function of its final hidden state $\vh_{n_x}$.
+    \item A \textbf{decoder} or \textbf{writer} or \textbf{output} RNN is conditioned on that fixed-length vector to generate the ouput sequence $\vY = (\egvy{1},\dots,\egvy{n_y})$.
+\end{itemize}
+\begin{center}
+    \includegraphics[width=0.8\textwidth]{../imgs/Seq2Seq.pdf}
+\end{center}
+
+\paragraph{Motivation}
+\begin{itemize}
+    \item Map an input sequence to an output sequence not necessarily of the same length.
+\end{itemize}
+
+\paragraph{Characteristics}
+\begin{itemize}
+    \item{
+        Loss: The two RNNs are trained jointly to maximize the average of $\log P(\egvy{1},\dots,\egvy{n_y} \mid \egvx{1},\dots,\egvx{n_x})$ over all the pairs of $\vx$ and $\vy$.
+    }
+\end{itemize}
+
+\paragraph{Applications}
+\begin{enumerate}
+    \item Speech recognition, machine translation, question answering.
+\end{enumerate}
+
+\paragraph{Restrictions}
+\begin{itemize}
+    \item If the context $C$ has a dimension that is too small to properly summarize a long sequence. (see \textbf{attention mechanisme} for solutions)
+\end{itemize}
+
+
+\section{Deeper RNNs}
+A RNN can be deeper in many ways:
+\begin{enumerate}
+    \item The hidden recurrent state can be broken down into groups organized hierarchically.
+    \item{
+        Deeper computation (e.g., an MLP) can be introduced in three parts:
+        \begin{enumerate}
+            \item input-to-hidden
+            \item hidden-to-hidden
+            \item hidden-to-output
+        \end{enumerate}
+        This may lengthen the shortest path linking different time steps.
+    }
+    The path-lengthening effect can be mitigated by introducing skip connections.
+\end{enumerate}
+\begin{center}
+    \includegraphics[width=0.8\textwidth]{../imgs/Deeper_RNNs.pdf}
+\end{center}
+
+
+\section{Attention Mechanism}
+
+Read the whole sentence or paragraph (to get the context and the gist of what if being expressed), then produce the translated words one at a time, each time focusing on a different part of the input sentence to gather the semantic details required to produce the next output word.
+\newline
+The attention-based system used to focus on specific parts of the input sequence at each time step has three components:
+\begin{enumerate}
+    \item A process that reads raw data (such as source words in a source sentence) and converts them into distributed representations, with one feature vector associated with each word position.
+    \item A list of feature vectors storing the ouput of the reader. This can be understood as a memory containing a sequence of facts, which can be retrieved later, not necessarily in the same order, without having to visit all of them.
+    \item A process that exploits the content of the memory to sequentially perform a task, at each time step having the ability put attention on the content of one memory element (or a few, with a different weight).
+\end{enumerate}
+The third component generates the translated sentence.
+
+\paragraph{Motivation}
+\begin{itemize}
+    \item{
+        Using a fixed-size representation to capture all the semantic details of a very long sentence of, say, 60 words is very difficult.
+        \begin{itemize}
+            \item It can be achieved by training a sufficiently large RNN well enough and for long enough.
+        \end{itemize}
+    }
+\end{itemize}
+
+\paragraph{A modern attention mechanism}
+\begin{center}
+    \includegraphics[width=0.8\textwidth]{../imgs/Attention_Mechanism.pdf}
+\end{center}
+\begin{itemize}
+    \item A context vector $\vc$ is formed by taking aweighted average of feature vectors $\egvh{t}$ with weights $\alpha^{(t)}$.
+    \item The feature vectors $vh$ may be hidden units of a neural network or raw input to the model.
+    \item The weights $\alpha^{(t)}$ are produced by the model iteself. They are usually values in the interval $[0, 1]$ and are intended to concentrate around just one $\egvh{t}$ so that the weighted average approximates reading that one specific time step precisely. The weight $\alpha^{(t)}$ are usually produced by applying a softmax function to relevance scores emitted by another portion of the model.
+    \item More expensive computationally than directly indexing the desired $\egvh{t}$, but direct indexing cannot be trained with gradient descent.
+\end{itemize}
 
 
 \end{document}
